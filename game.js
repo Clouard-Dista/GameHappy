@@ -39,7 +39,7 @@ var npcList = [
         y: 5 * squareSize,
         color: "#0000FF",
         radius: squareSize / 2,
-        moveSpeed: 5,
+        moveSpeed: 5, height: squareSize, width: squareSize,
         path: []
     },
     {
@@ -47,15 +47,7 @@ var npcList = [
         y: 10 * squareSize,
         color: "#FFA500",
         radius: squareSize / 2,
-        moveSpeed: 5,
-        path: []
-    },
-    {
-        x: 10 * squareSize,
-        y: 20 * squareSize,
-        color: "#800080",
-        radius: squareSize / 2,
-        moveSpeed: 5,
+        moveSpeed: 5, height: squareSize, width: squareSize,
         path: []
     }
 ];
@@ -67,7 +59,7 @@ var walls = [];
 for (var i = 0; i < 20; i++) {
     var wallX = Math.floor(Math.random() * backgroundWidth);
     var wallY = Math.floor(Math.random() * backgroundHeight);
-    walls.push({ x: wallX, y: wallY });
+    walls.push({ x: wallX, y: wallY, height: squareSize, width: squareSize });
 }
 
 // Créer le canvas et le contexte
@@ -124,9 +116,7 @@ function drawNPCs() {
     for (var i = 0; i < npcList.length; i++) {
         var npc = npcList[i];
         ctx.fillStyle = npc.color;
-        ctx.beginPath();
-        ctx.arc(npc.x + squareSize / 2, npc.y + squareSize / 2, npc.radius, 0, 2 * Math.PI);
-        ctx.fill();
+        ctx.fillRect(npc.x, npc.y, squareSize, squareSize);
     }
 }
 
@@ -155,6 +145,25 @@ function checkCollisions() {
     // Vérifier les collisions avec les PNJ
     for (var i = 0; i < npcList.length; i++) {
         var npc = npcList[i];
+        if (player.x < npc.x + squareSize &&
+            player.x + squareSize > npc.x &&
+            player.y < npc.y + squareSize &&
+            player.y + squareSize > npc.y) {
+            // Collision entre le joueur et le mur
+            if (player.x < npc.x) {
+                player.x = npc.x - squareSize;
+            } else if (player.x > npc.x) {
+                player.x = npc.x + squareSize;
+            }
+            if (player.y < npc.y) {
+                player.y = npc.y - squareSize;
+            } else if (player.y > npc.y) {
+                player.y = npc.y + squareSize;
+            }
+        }
+    }/*
+    for (var i = 0; i < npcList.length; i++) {
+        var npc = npcList[i];
         var dx = player.x + squareSize / 2 - (npc.x + npc.radius);
         var dy = player.y + squareSize / 2 - (npc.y + npc.radius);
         var distance = Math.sqrt(dx * dx + dy * dy);
@@ -167,8 +176,8 @@ function checkCollisions() {
             }
         }
     
-    }
-/**
+    }*/
+/***
     // Suivre le joueur avec le scrolling
     var leftLimit = canvas.width / 2;
     var rightLimit = backgroundWidth - canvas.width / 2;
@@ -200,6 +209,16 @@ function checkCollisions() {
     
 }
 
+function detectCollision(rect1, rect2) {
+    if (rect1.x < rect2.x + rect2.width &&
+        rect1.x + rect1.width > rect2.x &&
+        rect1.y < rect2.y + rect2.height &&
+        rect1.y + rect1.height > rect2.y) {
+        return true;
+    } else {
+        return false;
+    }
+}
 function findPath(entity, target, obstacles) {
     // Créer les noeuds de départ et d'arrivée
     var startNode = { x: entity.x, y: entity.y };
@@ -292,18 +311,232 @@ function findPath(entity, target, obstacles) {
     // Aucun chemin trouvé
     return null;
 }
+//une fonction de pathfinding basé sur l'A* qui prend en paramétre 3 choses, une entité qui est l'objet a déplacé, 
+//une entité qui est l'objet de destination et le tableau de toutes les entitées que notre objets a déplacé devra 
+//contourner et je souhaite que cette fonction retourne un tableau du chemin a suivre sous forme de coordonné x, y.
+function findPath(start, end, obstacles) {
+    // Créer un tableau de noeuds à explorer
+    var openList = [{ x: start.x, y: start.y, g: 0, h: heuristic(start, end), parent: null }];
+    var closedList = [];
 
+    // Fonction heuristique pour estimer le coût restant
+    function heuristic(node, end) {
+        var dx = Math.abs(node.x - end.x);
+        var dy = Math.abs(node.y - end.y);
+        return dx + dy;
+    }
 
-function detectCollision(rect1, rect2) {
-    if (rect1.x < rect2.x + rect2.width &&
-        rect1.x + rect1.width > rect2.x &&
-        rect1.y < rect2.y + rect2.height &&
-        rect1.y + rect1.height > rect2.y) {
-        return true;
-    } else {
-        return false;
+    // Fonction pour récupérer le noeud avec le coût le plus faible
+    function getLowestCostNode() {
+        var lowestCostNode = openList[0];
+        for (var i = 1; i < openList.length; i++) {
+            if (openList[i].g + openList[i].h < lowestCostNode.g + lowestCostNode.h) {
+                lowestCostNode = openList[i];
+            }
+        }
+        return lowestCostNode;
+    }
+
+    // Boucler jusqu'à trouver le chemin ou échouer
+    while (openList.length > 0) {
+        // Récupérer le noeud avec le coût le plus faible
+        var current = getLowestCostNode();
+
+        // Si on est arrivé à la destination, retourner le chemin
+        if (current.x === end.x && current.y === end.y) {
+            var path = [];
+            while (current.parent !== null) {
+                path.unshift({ x: current.x, y: current.y });
+                current = current.parent;
+            }
+            return path;
+        }
+
+        // Enlever le noeud de la liste ouverte et l'ajouter à la liste fermée
+        openList.splice(openList.indexOf(current), 1);
+        closedList.push(current);
+
+        // Ajouter les voisins dans la liste ouverte
+        for (var i = -1; i <= 1; i++) {
+            for (var j = -1; j <= 1; j++) {
+                // Ne pas prendre en compte le noeud courant
+                if (i === 0 && j === 0) {
+                    continue;
+                }
+
+                var neighborX = current.x + i;
+                var neighborY = current.y + j;
+
+                // Vérifier les limites de la grille
+                if (neighborX < 0 || neighborX >= 200 || neighborY < 0 || neighborY >= 200) {
+                    continue;
+                }
+
+                // Vérifier si le voisin est dans la liste fermée ou s'il y a un obstacle
+                var neighbor = { x: neighborX, y: neighborY };
+                if (closedList.find(node => node.x === neighborX && node.y === neighborY) !== undefined ||
+                    obstacles.find(obstacle => detectCollision(obstacle, neighbor)) !== undefined) {
+                    continue;
+                }
+
+                // Calculer le coût
+                var g = current.g + Math.sqrt(i * i + j * j);
+                var h = heuristic(neighbor, end);
+
+                // Ajouter le voisin dans la liste ouverte
+                var index = openList.findIndex(node => node.x === neighborX && node.y === neighborY);
+                if (index === -1) {
+                    openList.push({ x: neighborX, y: neighborY, g: g, h: h, parent: current });
+                } else {
+                    // Mettre à jour le noeud existant si le coût est plus faible
+                    var existingNode = openList[index];
+                    if (g + h < existingNode.g + existingNode.h) {
+                        existingNode.g = g;
+                        existingNode.parent = current;
+                    }
+                }
+            }
+        }
+    }
+
+    // Échouer si aucun chemin n'a été trouvé
+    return null;
+}
+
+//TODO convertir les coordoné en grille et utilisé la derniére fonction de pathfinding
+//TODO 1 case = 10px
+//version grille
+function findPath(startEntity, endEntity, grid) {
+    // Créer un tableau de noeuds représentant la grille
+    var nodes = [];
+    for (var x = 0; x < grid.length; x++) {
+        var row = [];
+        for (var y = 0; y < grid[0].length; y++) {
+            var node = {
+                x: x,
+                y: y,
+                f: 0,
+                g: 0,
+                h: 0,
+                parent: null,
+                isWall: grid[x][y] === 0
+            };
+            row.push(node);
+        }
+        nodes.push(row);
+    }
+
+    // Définir les noeuds de départ et d'arrivée
+    var startNode = nodes[startEntity.x][startEntity.y];
+    var endNode = nodes[endEntity.x][endEntity.y];
+
+    // Créer des listes ouvertes et fermées
+    var openList = [startNode];
+    var closedList = [];
+
+    // Calculer les distances de chaque noeud
+    for (var x = 0; x < nodes.length; x++) {
+        for (var y = 0; y < nodes[0].length; y++) {
+            var node = nodes[x][y];
+            node.h = heuristic(node, endNode);
+        }
+    }
+
+    // Appliquer l'algorithme A*
+    while (openList.length > 0) {
+        // Trouver le noeud avec le score le plus bas
+        var currentNode = openList[0];
+        for (var i = 1; i < openList.length; i++) {
+            if (openList[i].f < currentNode.f) {
+                currentNode = openList[i];
+            }
+        }
+
+        // Si on a atteint le noeud de destination, construire et retourner le chemin
+        if (currentNode === endNode) {
+            var path = [];
+            while (currentNode.parent) {
+                path.push({ x: currentNode.x, y: currentNode.y });
+                currentNode = currentNode.parent;
+            }
+            path.push({ x: currentNode.x, y: currentNode.y });
+            return path.reverse();
+        }
+
+        // Retirer le noeud courant de la liste ouverte et l'ajouter à la liste fermée
+        removeFromArray(openList, currentNode);
+        closedList.push(currentNode);
+
+        // Vérifier les voisins du noeud courant
+        var neighbors = getNeighbors(currentNode, nodes);
+        for (var i = 0; i < neighbors.length; i++) {
+            var neighbor = neighbors[i];
+
+            // Ignorer les murs et les noeuds déjà dans la liste fermée
+            if (neighbor.isWall || closedList.includes(neighbor)) {
+                continue;
+            }
+
+            // Calculer les scores de ce noeud voisin
+            var gScore = currentNode.g + 1;
+            var gScoreIsBest = false;
+
+            if (!openList.includes(neighbor)) {
+                // Ajouter ce noeud voisin à la liste ouverte s'il n'y est pas déjà
+                gScoreIsBest = true;
+                neighbor.h = heuristic(neighbor, endNode);
+                openList.push(neighbor);
+            } else if (gScore < neighbor.g) {
+                // Mettre à jour les scores de ce noeud voisin s'il a déjà été visité
+                gScoreIsBest = true;
+            }
+
+            if (gScoreIsBest) {
+                // Mettre à jour les scores de ce noeud voisin
+                neighbor.parent = currentNode;
+                neighbor.g = gScore;
+                neighbor.f = neighbor.g + neighbor.h;
+            }
+        }
+    }
+
+    // Si on n'a pas trouvé de chemin, retourner une liste vide
+    return [];
+}
+
+function getNeighbors(node, nodes) {
+    var x = node.x;
+    var y = node.y;
+    var neighbors = [];
+
+    if (x > 0) {
+        neighbors.push(nodes[x - 1][y]);
+    }
+    if (y > 0) {
+        neighbors.push(nodes[x][y - 1]);
+    }
+    if (x < nodes.length - 1) {
+        neighbors.push(nodes[x + 1][y]);
+    }
+    if (y < nodes[0].length - 1) {
+        neighbors.push(nodes[x][y + 1]);
+    }
+
+    return neighbors;
+}
+
+function heuristic(node1, node2) {
+    return Math.abs(node1.x - node2.x) + Math.abs(node1.y - node2.y);
+}
+
+function removeFromArray(array, item) {
+    for (var i = array.length - 1; i >= 0; i--) {
+        if (array[i] === item) {
+            array.splice(i, 1);
+        }
     }
 }
+
 
 function moveNPCs() {
     let obstacles = walls.concat(npcList)
@@ -347,7 +580,6 @@ function moveNPCs() {
 
 
 function movePlayer() {
-    console.log("ca", player.xSpeed, player.ySpeed)
     player.xSpeed=player.ySpeed=0
     if (leftPressed) {
         // Left Arrow
@@ -432,7 +664,7 @@ document.addEventListener("keydown", keyDownHandler, false);
 document.addEventListener("keyup", keyUpHandler, false);
 
 function keyDownHandler(event) {
-    if (event.key == "ArrowLeft") {console.log("a")
+    if (event.key == "ArrowLeft") {
         leftPressed = true;
     } else if (event.key == "ArrowRight") {
         rightPressed = true;
