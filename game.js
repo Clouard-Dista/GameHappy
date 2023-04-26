@@ -366,6 +366,13 @@ function removeFromArray(array, item) {
     }
 }
 
+//TODO garder même chemin sauf si prochain node occupé (verif avec simulateGrid)
+//TODO faire que le pnj se déplace vers le points entre les deux prochain points (moyenne)
+//TODO dans le pathfinding dans le cas ou plusieur chemin sont possible faire de l'aléatoire pour la selection
+//TODO refaire le pathfinding
+//TODO rendre objet le code
+//TODO faire une fonction de déplacement commune qui permet de glisser contre les obstacles
+//class DateFormatter extends Date {}
 
 function moveNPCs() {
     for (var i = 0; i < npcList.length; i++) {
