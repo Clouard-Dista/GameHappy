@@ -11,8 +11,10 @@ var yOffset = 0;
 var squareSize = 50;
 
 // Dimensions du fond d'écran en pixels
-var backgroundWidth = 200 * squareSize;
-var backgroundHeight = 150 * squareSize;
+var width = 200;
+var height = 150;
+var backgroundWidth = width*10;
+var backgroundHeight = height*10;
 
 // Objet joueur
 var player = {
@@ -21,7 +23,7 @@ var player = {
     ySpeed:0,
     xSpeed:0,
     color: "#00FF00",
-    moveSpeed: 10
+    moveSpeed: 10, height: squareSize, width: squareSize
 };
 
 // Objet ordinateur
@@ -35,17 +37,17 @@ var computer = {
 // Liste des PNJ
 var npcList = [
     {
-        x: 5 * squareSize,
-        y: 5 * squareSize,
+        x: 4 * squareSize,
+        y: 2 * squareSize,
         color: "#0000FF",
         radius: squareSize / 2,
         moveSpeed: 5, height: squareSize, width: squareSize,
         path: []
     },
     {
-        x: 15 * squareSize,
-        y: 10 * squareSize,
-        color: "#FFA500",
+        x: 2 * squareSize,
+        y: 4 * squareSize,
+        color: "#0000FF",
         radius: squareSize / 2,
         moveSpeed: 5, height: squareSize, width: squareSize,
         path: []
@@ -59,40 +61,24 @@ var walls = [];
 for (var i = 0; i < 20; i++) {
     var wallX = Math.floor(Math.random() * backgroundWidth);
     var wallY = Math.floor(Math.random() * backgroundHeight);
-    walls.push({ x: wallX, y: wallY, height: squareSize, width: squareSize });
-}
+    walls.push({ x: wallX, y: wallY, height: 50, width: 20 });
+} console.log(player,walls)
 
 // Créer le canvas et le contexte
 var canvas = document.getElementById("gameCanvas");
-canvas.width = 800;
-canvas.height = 600;
+canvas.width = backgroundWidth;
+canvas.height = backgroundHeight;
 var ctx = canvas.getContext("2d");
 
 var backgroundXOffset = (canvas.width - backgroundWidth) / 2;
 var backgroundYOffset = (canvas.height - backgroundHeight) / 2;
 
 function drawBackground() {
-    // Dessiner le quadrillage de fond
-    ctx.strokeStyle = "#000";
-    ctx.lineWidth = 1;
-    for (var x = 0; x < backgroundWidth; x += squareSize) {
-        ctx.beginPath();
-        ctx.moveTo(x, 0);
-        ctx.lineTo(x, backgroundHeight);
-        ctx.stroke();
-    }
-    for (var y = 0; y < backgroundHeight; y += squareSize) {
-        ctx.beginPath();
-        ctx.moveTo(0, y);
-        ctx.lineTo(backgroundWidth, y);
-        ctx.stroke();
-    }
-
     // Dessiner les murs fixes
     ctx.fillStyle = "#333";
     for (var i = 0; i < walls.length; i++) {
         var wall = walls[i];
-        ctx.fillRect(wall.x, wall.y, squareSize, squareSize);
+        ctx.fillRect(wall.x, wall.y, wall.height, wall.width);
     }
 }
 
@@ -124,20 +110,20 @@ function checkCollisions() {
     // Vérifier les collisions avec les murs
     for (var i = 0; i < walls.length; i++) {
         var wall = walls[i];
-        if (player.x < wall.x + squareSize &&
-            player.x + squareSize > wall.x &&
-            player.y < wall.y + squareSize &&
-            player.y + squareSize > wall.y) {
+        if (player.x < wall.x + wall.width &&
+            player.x + player.width > wall.x &&
+            player.y < wall.y + wall.height &&
+            player.y + player.height > wall.y) {
             // Collision entre le joueur et le mur
             if (player.x < wall.x) {
-                player.x = wall.x - squareSize;
+                player.x = wall.x - wall.width;
             } else if (player.x > wall.x) {
-                player.x = wall.x + squareSize;
+                player.x = wall.x + wall.width;
             }
             if (player.y < wall.y) {
-                player.y = wall.y - squareSize;
+                player.y = wall.y - wall.height;
             } else if (player.y > wall.y) {
-                player.y = wall.y + squareSize;
+                player.y = wall.y + wall.height;
             }
         }
     }
@@ -145,20 +131,20 @@ function checkCollisions() {
     // Vérifier les collisions avec les PNJ
     for (var i = 0; i < npcList.length; i++) {
         var npc = npcList[i];
-        if (player.x < npc.x + squareSize &&
-            player.x + squareSize > npc.x &&
-            player.y < npc.y + squareSize &&
-            player.y + squareSize > npc.y) {
+        if (player.x < npc.x + npc.width &&
+            player.x + player.width > npc.x &&
+            player.y < npc.y + npc.height &&
+            player.y + player.height > npc.y) {
             // Collision entre le joueur et le mur
             if (player.x < npc.x) {
-                player.x = npc.x - squareSize;
+                player.x = npc.x - npc.width;
             } else if (player.x > npc.x) {
-                player.x = npc.x + squareSize;
+                player.x = npc.x + npc.width;
             }
             if (player.y < npc.y) {
-                player.y = npc.y - squareSize;
+                player.y = npc.y - npc.height;
             } else if (player.y > npc.y) {
-                player.y = npc.y + squareSize;
+                player.y = npc.y + npc.height;
             }
         }
     }/*
@@ -208,6 +194,12 @@ function checkCollisions() {
 /**/
     
 }
+function getDistance(entity1, entity2) {
+    let y = (entity1.x + Math.floor(entity1.width /2)) - (entity2.x + Math.floor(entity2.width /2));
+    let x = (entity1.y + Math.floor(entity1.height /2)) - (entity2.y + Math.floor(entity2.height /2));
+
+    return Math.sqrt(x * x + y * y);
+}
 
 function detectCollision(rect1, rect2) {
     if (rect1.x < rect2.x + rect2.width &&
@@ -219,192 +211,7 @@ function detectCollision(rect1, rect2) {
         return false;
     }
 }
-function findPath(entity, target, obstacles) {
-    // Créer les noeuds de départ et d'arrivée
-    var startNode = { x: entity.x, y: entity.y };
-    var endNode = { x: target.x, y: target.y };
 
-    // Créer la liste ouverte et la liste fermée
-    var openList = [startNode];
-    var closedList = [];
-
-    // Boucler jusqu'à ce que la liste ouverte soit vide
-    while (openList.length > 0) {
-        // Trouver le noeud avec le coût le plus faible
-        var currentNode = openList[0];
-        for (var i = 1; i < openList.length; i++) {
-            if (openList[i].f < currentNode.f) {
-                currentNode = openList[i];
-            }
-        }
-
-        // Déplacer le noeud courant de la liste ouverte vers la liste fermée
-        openList.splice(openList.indexOf(currentNode), 1);
-        closedList.push(currentNode);
-
-        // Vérifier si on est arrivé à destination
-        if (currentNode.x === endNode.x && currentNode.y === endNode.y) {
-            // Reconstituer le chemin à partir des parents
-            var path = [endNode];
-            while (currentNode.parent) {
-                currentNode = currentNode.parent;
-                path.unshift(currentNode);
-            }
-            return path;
-        }
-
-        // Trouver les voisins du noeud courant
-        var neighbors = [];
-        for (var dx = -1; dx <= 1; dx++) {
-            for (var dy = -1; dy <= 1; dy++) {
-                if (dx === 0 && dy === 0) {
-                    continue;
-                }
-                var neighborX = currentNode.x + dx * entity.width;
-                var neighborY = currentNode.y + dy * entity.height;
-                var neighbor = { x: neighborX, y: neighborY, parent: currentNode };
-                // Vérifier si le voisin est dans les limites de la zone de jeu
-                if (neighbor.x >= 0 && neighbor.x + entity.width <= backgroundWidth &&
-                    neighbor.y >= 0 && neighbor.y + entity.height <= backgroundHeight) {
-                    // Vérifier si le voisin est libre
-                    var isObstacle = false;
-                    for (var j = 0; j < obstacles.length; j++) {
-                        if (detectCollision(neighbor, obstacles[j])) {
-                            isObstacle = true;
-                            break;
-                        }
-                    }
-                    if (!isObstacle) {
-                        neighbors.push(neighbor);
-                    }
-                }
-            }
-        }
-
-        // Mettre à jour les coûts des voisins et les ajouter à la liste ouverte
-        for (var i = 0; i < neighbors.length; i++) {
-            var neighbor = neighbors[i];
-            // Vérifier si le voisin est déjà dans la liste fermée
-            if (closedList.find(function (node) { return node.x === neighbor.x && node.y === neighbor.y })) {
-                continue;
-            }
-            // Calculer les coûts du voisin
-            neighbor.g = currentNode.g + 1;
-            neighbor.h = Math.abs(neighbor.x - endNode.x) + Math.abs(neighbor.y - endNode.y);
-            neighbor.f = neighbor.g + neighbor.h;
-            // Vérifier si le voisin est déjà dans la liste ouverte
-            var existingNeighbor = openList.find(function (node) { return node.x === neighbor.x && node.y === neighbor.y });
-            if (existingNeighbor) {
-                // Mettre à jour le voisin s'il a un coût inférieur
-                if (neighbor.g < existingNeighbor.g) {
-                    existingNeighbor.g = neighbor.g;
-                    existingNeighbor.f = existingNeighbor.g + existingNeighbor.h;
-                    existingNeighbor.parent = currentNode;
-                }
-            } else {
-                // Ajouter le voisin à la liste ouverte
-                openList.push(neighbor);
-            }
-        }
-    }
-
-    // Aucun chemin trouvé
-    return null;
-}
-//une fonction de pathfinding basé sur l'A* qui prend en paramétre 3 choses, une entité qui est l'objet a déplacé, 
-//une entité qui est l'objet de destination et le tableau de toutes les entitées que notre objets a déplacé devra 
-//contourner et je souhaite que cette fonction retourne un tableau du chemin a suivre sous forme de coordonné x, y.
-function findPath(start, end, obstacles) {
-    // Créer un tableau de noeuds à explorer
-    var openList = [{ x: start.x, y: start.y, g: 0, h: heuristic(start, end), parent: null }];
-    var closedList = [];
-
-    // Fonction heuristique pour estimer le coût restant
-    function heuristic(node, end) {
-        var dx = Math.abs(node.x - end.x);
-        var dy = Math.abs(node.y - end.y);
-        return dx + dy;
-    }
-
-    // Fonction pour récupérer le noeud avec le coût le plus faible
-    function getLowestCostNode() {
-        var lowestCostNode = openList[0];
-        for (var i = 1; i < openList.length; i++) {
-            if (openList[i].g + openList[i].h < lowestCostNode.g + lowestCostNode.h) {
-                lowestCostNode = openList[i];
-            }
-        }
-        return lowestCostNode;
-    }
-
-    // Boucler jusqu'à trouver le chemin ou échouer
-    while (openList.length > 0) {
-        // Récupérer le noeud avec le coût le plus faible
-        var current = getLowestCostNode();
-
-        // Si on est arrivé à la destination, retourner le chemin
-        if (current.x === end.x && current.y === end.y) {
-            var path = [];
-            while (current.parent !== null) {
-                path.unshift({ x: current.x, y: current.y });
-                current = current.parent;
-            }
-            return path;
-        }
-
-        // Enlever le noeud de la liste ouverte et l'ajouter à la liste fermée
-        openList.splice(openList.indexOf(current), 1);
-        closedList.push(current);
-
-        // Ajouter les voisins dans la liste ouverte
-        for (var i = -1; i <= 1; i++) {
-            for (var j = -1; j <= 1; j++) {
-                // Ne pas prendre en compte le noeud courant
-                if (i === 0 && j === 0) {
-                    continue;
-                }
-
-                var neighborX = current.x + i;
-                var neighborY = current.y + j;
-
-                // Vérifier les limites de la grille
-                if (neighborX < 0 || neighborX >= 200 || neighborY < 0 || neighborY >= 200) {
-                    continue;
-                }
-
-                // Vérifier si le voisin est dans la liste fermée ou s'il y a un obstacle
-                var neighbor = { x: neighborX, y: neighborY };
-                if (closedList.find(node => node.x === neighborX && node.y === neighborY) !== undefined ||
-                    obstacles.find(obstacle => detectCollision(obstacle, neighbor)) !== undefined) {
-                    continue;
-                }
-
-                // Calculer le coût
-                var g = current.g + Math.sqrt(i * i + j * j);
-                var h = heuristic(neighbor, end);
-
-                // Ajouter le voisin dans la liste ouverte
-                var index = openList.findIndex(node => node.x === neighborX && node.y === neighborY);
-                if (index === -1) {
-                    openList.push({ x: neighborX, y: neighborY, g: g, h: h, parent: current });
-                } else {
-                    // Mettre à jour le noeud existant si le coût est plus faible
-                    var existingNode = openList[index];
-                    if (g + h < existingNode.g + existingNode.h) {
-                        existingNode.g = g;
-                        existingNode.parent = current;
-                    }
-                }
-            }
-        }
-    }
-
-    // Échouer si aucun chemin n'a été trouvé
-    return null;
-}
-
-//TODO convertir les coordoné en grille et utilisé la derniére fonction de pathfinding
-//TODO 1 case = 10px
 //version grille
 function findPath(startEntity, endEntity, grid) {
     // Créer un tableau de noeuds représentant la grille
@@ -503,6 +310,28 @@ function findPath(startEntity, endEntity, grid) {
     // Si on n'a pas trouvé de chemin, retourner une liste vide
     return [];
 }
+function simulateGrid(obstacles, width, height){
+    const defaultArray = new Array(height).fill(1);
+    let grid = new Array( width).fill([...defaultArray]);
+    for (const obstacle of obstacles) {
+        const x1 = obstacle.x - (obstacle.x%10);
+        const y1 = obstacle.y - (obstacle.y % 10);
+        const tmpX2 = obstacle.x + obstacle.width;
+        const x2 = tmpX2 + (10 - tmpX2%10);
+        const tmpY2 = obstacle.y + obstacle.height;
+        const y2 = tmpY2 + (10 - tmpY2 % 10);
+        for (let j = 0; j <= y1 - y2; j++) {
+            let jd = j + y1;
+        for (let i = 0; i <=x1-x2; i++) {
+            let id = i + x1;
+                if (grid[jd] && grid[jd][id]==1){
+                    grid[jd][id]=0;
+                }
+            }            
+        }
+    }
+    return grid;
+}
 
 function getNeighbors(node, nodes) {
     var x = node.x;
@@ -539,16 +368,26 @@ function removeFromArray(array, item) {
 
 
 function moveNPCs() {
-    let obstacles = walls.concat(npcList)
-  for (var i = 0; i < npcList.length; i++) {
-    var npc = npcList[i];
+    for (var i = 0; i < npcList.length; i++) {
+        var npc = npcList[i];
+        if (getDistance(npc,player)>squareSize+10){
+      let tmpnpcList = [...npcList]
+      tmpnpcList.splice(i,1)
+      let obstacles = [...walls, ...tmpnpcList]//.concat(npcList)
+      let tmpNpc = {}
+      tmpNpc.x = (npc.x - (npc.x % 10))/10
+      tmpNpc.y = (npc.y - (npc.y % 10))/10
+      let tmpPlayer = {}
+      tmpPlayer.x = (player.x - (player.x % 10)) / 10
+      tmpPlayer.y = (player.y - (player.y % 10)) / 10
     // Trouver le chemin vers le joueur
-    var path = findPath(npc, player, obstacles);
+      let grid= simulateGrid(obstacles,width,height)
+      var path = findPath(tmpNpc, tmpPlayer, grid);
     if (path) {
       // Déplacer le PNJ vers le joueur en suivant le chemin
-      var nextNode = path[0];
-      var dx = nextNode.x - npc.x;
-      var dy = nextNode.y - npc.y;
+      var nextNode = path[1];
+      var dx = (nextNode.x*10) - npc.x;
+      var dy = (nextNode.y*10) - npc.y;
       var dist = Math.sqrt(dx * dx + dy * dy);
       if (dist > npc.moveSpeed) {
         dx = dx * npc.moveSpeed / dist;
@@ -574,7 +413,8 @@ function moveNPCs() {
           break;
         }
       }
-    }
+            }
+        }
   }
 }
 
