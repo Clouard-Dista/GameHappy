@@ -40,9 +40,3 @@ const Input = (function () {
         }
     }
 })();
-Input.getInstance()
-document.addEventListener("keydown", Input.getInstance().keyDownHandler, false);
-document.addEventListener("keyup", Input.getInstance().keyUpHandler, false);
-document.addEventListener("mouseout", Input.getInstance().out, false);
-document.addEventListener("mouseover", Input.getInstance().in, false);
-Input.getInstance().inputActive

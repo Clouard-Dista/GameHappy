@@ -1,4 +1,4 @@
-export class Box {
+class Box {
     x;
     y;
     height;
