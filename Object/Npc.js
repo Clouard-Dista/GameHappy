@@ -19,13 +19,13 @@ class Npc extends Entity {
 
 
             let nextNode = this.path[1];
-            let dx = (nextNode.x * sizePx) + (sizePx/2) - this.x;
-            let dy = (nextNode.y * sizePx) + (sizePx / 2) - this.y;
+            let dx = (nextNode.x * sizePx) - this.x;
+            let dy = (nextNode.y * sizePx) +- this.y;
 
             for (let i = 0; i < this.path.length; i++) {
                 let nextNode3 = this.path[i];
-                let dx3 = (nextNode3.x * sizePx) + (sizePx / 2) - this.x;
-                let dy3 = (nextNode3.y * sizePx) + (sizePx / 2) - this.y;
+                let dx3 = (nextNode3.x * sizePx) - this.x;
+                let dy3 = (nextNode3.y * sizePx) - this.y;
                 game.ctx.fillRect(this.x + dx3, this.y +dy3, 8, 8);
                 
             }
