@@ -16,9 +16,9 @@ let Utils = {
     findPath(startEntity, endEntity, grid, sizePx) {
         // Créer un tableau de noeuds représentant la grille
         var nodes = [];
-        for (var x = 0; x < grid.length; x++) {
-            var row = [];
-            for (var y = 0; y < grid[0].length; y++) {
+            for (var x = 0; x < grid[0].length; x++) {
+                var row = [];
+                for (var y = 0; y < grid.length; y++) {
                 var node = {
                     x: x,
                     y: y,
@@ -26,7 +26,7 @@ let Utils = {
                     g: 0,
                     h: 0,
                     parent: null,
-                    isWall: grid[x][y] === 0
+                    isWall: grid[y][x] === 0
                 };
                 row.push(node);
             }
@@ -36,10 +36,17 @@ let Utils = {
         // Définir les noeuds de départ et d'arrivée
         tmpX = (startEntity.x - (startEntity.x % sizePx)) / sizePx
         tmpY = (startEntity.y - (startEntity.y % sizePx)) / sizePx
+        if (!nodes[tmpX] || !nodes[tmpX][tmpY]) {
+            return [];
+        }
         var startNode = nodes[tmpX][tmpY];
         tmpX = (endEntity.x - (endEntity.x % sizePx)) / sizePx
         tmpY = (endEntity.y - (endEntity.y % sizePx)) / sizePx
+        if (!nodes[tmpX] || !nodes[tmpX][tmpY]){
+            return [];
+        }
         var endNode = nodes[tmpX][tmpY];
+
 
         // Créer des listes ouvertes et fermées
         var openList = [startNode];

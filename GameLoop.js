@@ -6,7 +6,7 @@ class Game {
     interact = [];
     npc = [];
     debugAff=true;
-    sizePx = 15;
+    sizePx = 16;
     colideGrid;    
     backgroundWidth = 0;
     backgroundHeight = 0;
@@ -116,17 +116,17 @@ class Game {
 
     initGame() {
         //TMP Generation pnj et objet
-        this.interact.push(new Interactif(200, 200, 50, 100, new Box(10, 10, 30, 80)))
-        this.npc.push(new Npc(200, 50, 50, 100, new Box(10, 10, 30, 80)))
-        this.npc.push(new Npc(50, 200, 50, 100, new Box(10, 10, 30, 80)))
+        this.interact.push(new Interactif(160, 160, 32,32))
+        this.npc.push(new Npc(200, 50, 32, 32, new Box(6, 16, 20, 16)))
+        this.npc.push(new Npc(50, 200, 32, 32, new Box(6, 16, 20, 16)))
         for (var i = 0; i < 20; i++) {
             var wallX = Math.floor(Math.random() * game.backgroundWidth);
             var wallY = Math.floor(Math.random() * game.backgroundHeight);
-            this.level.push(new Entity(wallX, wallY, 50, 20 ));
+            this.level.push(new Entity(wallX + (16 - wallX % 16), wallY+(16 - wallY % 16), 32, 16,new Box(-8,-8,48,32) ));
         }
         ///TMP
 
-        this.player = new Player(50, 50, 50, 100, new Box(10, 10, 30, 80));
+        this.player = new Player(50, 50, 32, 32, new Box(6, 16, 20,16));
         this.canvas = document.getElementById("gameCanvas");
         this.canvas.width = this.backgroundWidth;
         this.canvas.height = this.backgroundHeight;
@@ -140,6 +140,6 @@ class Game {
     }
 }
 
-let game = new Game(1500, 1000);
+let game = new Game(640, 480);
 
 game.initGame()
