@@ -9,7 +9,7 @@ const Input = (function () {
             if (!Input.getInstance().lock){
                 Input.getInstance().inputActive[event.code] = true;
                 Input.getInstance().lastInput = event.code;
-                console.log(Input.getInstance().inputActive);
+                //console.log(Input.getInstance().inputActive);
             }
         }
         this.out = function (e) {

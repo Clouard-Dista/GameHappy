@@ -3,7 +3,7 @@ class Box {
     y;
     height;
     width;
-    constructor(x, y, height, width) {
+    constructor(x, y, width, height) {
         this.x = x;
         this.y = y;
         this.height = height;
